@@ -1,0 +1,4 @@
+user-agent: *
+Allow:/
+Sitemap:
+http//prime-article.github.io/Prime--article/sitemap.xml
