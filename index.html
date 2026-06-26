@@ -357,7 +357,10 @@ footer{padding:2rem 0 1rem;}
   <div class="modal">
     <div class="modal-top">
       <h2>Submit an article</h2>
-      <button class="close-btn" onclick="closeModal()">✕</button>
+      <div style="display:flex;align-items:center;gap:.6rem;">
+        <button class="btn-cancel" onclick="closeModal();openChangePwModal()" style="font-size:.62rem;padding:.38rem .8rem;">🔑 Change Password</button>
+        <button class="close-btn" onclick="closeModal()">✕</button>
+      </div>
     </div>
     <div class="field">
       <label>Headline</label>
@@ -389,6 +392,34 @@ footer{padding:2rem 0 1rem;}
   </div>
 </div>
 
+<!-- CHANGE PASSWORD MODAL -->
+<div class="overlay" id="changePwOverlay">
+  <div class="modal" style="border-top-color:var(--gold);width:min(420px,100%);">
+    <div class="modal-top">
+      <h2>Change password</h2>
+      <button class="close-btn" onclick="closeChangePwModal()">✕</button>
+    </div>
+    <div class="field">
+      <label>Current password</label>
+      <input type="password" id="cpCurrent" placeholder="Enter current password"/>
+    </div>
+    <div class="field">
+      <label>New password</label>
+      <input type="password" id="cpNew" placeholder="Enter new password"/>
+    </div>
+    <div class="field">
+      <label>Confirm new password</label>
+      <input type="password" id="cpConfirm" placeholder="Re-enter new password" onkeydown="if(event.key==='Enter')doChangePassword()"/>
+    </div>
+    <p class="pw-error" id="cpError"></p>
+    <p id="cpSuccess" style="display:none;font-family:var(--sans);font-size:.72rem;color:#27ae60;letter-spacing:.03em;margin-bottom:.75rem;">Password updated successfully!</p>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeChangePwModal()">Cancel</button>
+      <button class="btn-pub" onclick="doChangePassword()">Update password</button>
+    </div>
+  </div>
+</div>
+
 <script>
 // ── Date ──
 (function(){
@@ -398,8 +429,8 @@ footer{padding:2rem 0 1rem;}
   document.getElementById('todayDate').textContent=days[d.getDay()]+' '+d.getDate()+' '+months[d.getMonth()]+' '+d.getFullYear();
 })();
 
-// ── Password — change this to your own secret ──
-var EDITOR_PASSWORD = 'PrimeEditor2026';
+// ── Password — stored in localStorage so changes persist ──
+var EDITOR_PASSWORD = localStorage.getItem('pa_editor_pw') || 'PrimeEditor2026';
 
 function openPasswordModal(){
   document.getElementById('pwInput').value='';
@@ -410,6 +441,39 @@ function openPasswordModal(){
 function closePwModal(){
   document.getElementById('pwOverlay').classList.remove('open');
 }
+
+// ── Change password modal ──
+function openChangePwModal(){
+  document.getElementById('cpCurrent').value='';
+  document.getElementById('cpNew').value='';
+  document.getElementById('cpConfirm').value='';
+  document.getElementById('cpError').classList.remove('show');
+  document.getElementById('cpError').textContent='';
+  document.getElementById('cpSuccess').style.display='none';
+  document.getElementById('changePwOverlay').classList.add('open');
+  setTimeout(function(){document.getElementById('cpCurrent').focus();},80);
+}
+function closeChangePwModal(){
+  document.getElementById('changePwOverlay').classList.remove('open');
+}
+function doChangePassword(){
+  var current=document.getElementById('cpCurrent').value;
+  var nw=document.getElementById('cpNew').value.trim();
+  var confirm=document.getElementById('cpConfirm').value.trim();
+  var err=document.getElementById('cpError');
+  err.textContent='';err.classList.remove('show');
+  document.getElementById('cpSuccess').style.display='none';
+  if(current!==EDITOR_PASSWORD){err.textContent='Current password is incorrect.';err.classList.add('show');return;}
+  if(nw.length<6){err.textContent='New password must be at least 6 characters.';err.classList.add('show');return;}
+  if(nw!==confirm){err.textContent='Passwords do not match.';err.classList.add('show');return;}
+  EDITOR_PASSWORD=nw;
+  localStorage.setItem('pa_editor_pw',nw);
+  document.getElementById('cpSuccess').style.display='block';
+  setTimeout(function(){closeChangePwModal();},1400);
+}
+document.getElementById('changePwOverlay').addEventListener('click',function(e){
+  if(e.target===this)closeChangePwModal();
+});
 function checkPassword(){
   var val=document.getElementById('pwInput').value;
   if(val===EDITOR_PASSWORD){
